@@ -32,7 +32,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/apex_profiler.c")
 endif()
 
 # ───────────────────────────────────────────────
-# HIP BRIDGE (main CUDA → AMD translator)
+# HIP BRIDGE (main AMD implementation)
 # ───────────────────────────────────────────────
 add_library(apex_hip_bridge SHARED
     apex_hip_bridge.c
@@ -61,92 +61,77 @@ set_target_properties(apex_hip_bridge PROPERTIES
 )
 
 # ───────────────────────────────────────────────
-# cuBLAS BRIDGE
+# cuBLAS Bridge (stub-only, no CUDA required)
 # ───────────────────────────────────────────────
-add_library(apex_cublas_bridge SHARED
-    apex_cublas_bridge.c
-)
+if(EXISTS "${CMAKE_SOURCE_DIR}/apex_cublas_bridge.c")
+    add_library(apex_cublas_bridge SHARED apex_cublas_bridge.c)
 
-target_include_directories(apex_cublas_bridge PRIVATE ${ROCM_INCLUDE_DIR})
-target_link_libraries(apex_cublas_bridge dl)
+    target_include_directories(apex_cublas_bridge PRIVATE ${ROCM_INCLUDE_DIR})
+    target_link_libraries(apex_cublas_bridge dl)
 
-set_target_properties(apex_cublas_bridge PROPERTIES
-    OUTPUT_NAME "apex_cublas_bridge"
-    VERSION 1.0
-    SOVERSION 1
-)
+    if(TARGET apex_profiler)
+        target_link_libraries(apex_cublas_bridge apex_profiler)
+    endif()
 
-# ───────────────────────────────────────────────
-# cuDNN BRIDGE
-# ───────────────────────────────────────────────
-add_library(apex_cudnn_bridge SHARED
-    apex_cudnn_bridge.c
-)
-
-target_include_directories(apex_cudnn_bridge PRIVATE ${ROCM_INCLUDE_DIR})
-target_link_libraries(apex_cudnn_bridge dl)
-
-set_target_properties(apex_cudnn_bridge PROPERTIES
-    OUTPUT_NAME "apex_cudnn_bridge"
-    VERSION 1.0
-    SOVERSION 1
-)
-
-# ───────────────────────────────────────────────
-# APEX Runtime Shim
-# ───────────────────────────────────────────────
-add_library(apex_runtime SHARED
-    apex_runtime.c
-)
-
-target_link_libraries(apex_runtime dl)
-
-set_target_properties(apex_runtime PROPERTIES
-    OUTPUT_NAME "apex_runtime"
-    VERSION 1.0
-    SOVERSION 1
-)
-
-# ───────────────────────────────────────────────
-# CUDA Driver Shim
-# ───────────────────────────────────────────────
-# ───────────────────────────────────────────────
-# CUDA DRIVER + RUNTIME SHIMS (NVIDIA ONLY)
-# ───────────────────────────────────────────────
-if (EXISTS "/usr/local/cuda/include/cuda.h")
-    message(STATUS "CUDA detected — enabling CUDA driver shims")
-
-    add_library(apex_runtime SHARED
-        apex_runtime.c
+    set_target_properties(apex_cublas_bridge PROPERTIES
+        OUTPUT_NAME "apex_cublas_bridge"
+        VERSION 1.0
+        SOVERSION 1
     )
-
-    target_link_libraries(apex_runtime dl)
-
-    add_library(apex_cuda_driver SHARED
-        apex_cuda_driver.c
-    )
-
-    target_link_libraries(apex_cuda_driver dl)
-
-    install(TARGETS
-        apex_runtime
-        apex_cuda_driver
-        LIBRARY DESTINATION lib
-    )
-
-else()
-    message(STATUS "CUDA NOT DETECTED — skipping apex_runtime and apex_cuda_driver")
 endif()
 
 # ───────────────────────────────────────────────
-# INSTALL
+# cuDNN Bridge (stub-only, no CUDA required)
 # ───────────────────────────────────────────────
-install(TARGETS
-    apex_hip_bridge
-    apex_cublas_bridge
-    apex_cudnn_bridge
-    apex_runtime
-    apex_cuda_driver
-    LIBRARY DESTINATION lib
-)
+if(EXISTS "${CMAKE_SOURCE_DIR}/apex_cudnn_bridge.c")
+    add_library(apex_cudnn_bridge SHARED apex_cudnn_bridge.c)
 
+    target_include_directories(apex_cudnn_bridge PRIVATE ${ROCM_INCLUDE_DIR})
+    target_link_libraries(apex_cudnn_bridge dl)
+
+    if(TARGET apex_profiler)
+        target_link_libraries(apex_cudnn_bridge apex_profiler)
+    endif()
+
+    set_target_properties(apex_cudnn_bridge PROPERTIES
+        OUTPUT_NAME "apex_cudnn_bridge"
+        VERSION 1.0
+        SOVERSION 1
+    )
+endif()
+
+# ───────────────────────────────────────────────
+# CUDA Runtime & Driver — DISABLED under ROCm
+# ───────────────────────────────────────────────
+if(EXISTS "/usr/local/cuda/include/cuda.h")
+    message(STATUS "CUDA detected — enabling cuda_runtime + cuda_driver")
+
+    add_library(apex_runtime SHARED apex_runtime.c)
+    target_link_libraries(apex_runtime dl)
+
+    add_library(apex_cuda_driver SHARED apex_cuda_driver.c)
+    target_link_libraries(apex_cuda_driver dl)
+else()
+    message(STATUS "CUDA NOT DETECTED — skipping apex_runtime & apex_cuda_driver")
+endif()
+
+# ───────────────────────────────────────────────
+# INSTALLATION
+# ───────────────────────────────────────────────
+install(TARGETS apex_hip_bridge LIBRARY DESTINATION lib)
+
+if(TARGET apex_cublas_bridge)
+    install(TARGETS apex_cublas_bridge LIBRARY DESTINATION lib)
+endif()
+
+if(TARGET apex_cudnn_bridge)
+    install(TARGETS apex_cudnn_bridge LIBRARY DESTINATION lib)
+endif()
+
+if(TARGET apex_runtime)
+    install(TARGETS apex_runtime LIBRARY DESTINATION lib)
+endif()
+
+if(TARGET apex_cuda_driver)
+    install(TARGETS apex_cuda_driver LIBRARY DESTINATION lib)
+endif()
