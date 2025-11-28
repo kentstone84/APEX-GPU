@@ -210,34 +210,26 @@ void apex_hip_init(void)
 {
     // Initialize profiling and diagnostics
     apex_init_config();
-
     fprintf(stderr, "\n");
     fprintf(stderr, "╔═══════════════════════════════════════════════════════════════╗\n");
     fprintf(stderr, "║          🔄 APEX HIP BRIDGE - CUDA→AMD Translation          ║\n");
     fprintf(stderr, "║        Run CUDA Binaries on AMD GPUs Without Rebuild!        ║\n");
     fprintf(stderr, "╚═══════════════════════════════════════════════════════════════╝\n");
-
     APEX_INFO("APEX HIP Bridge initializing...");
     APEX_DEBUG("Debug logging enabled");
-
     if (!load_hip_library()) {
         fprintf(stderr, "  ❌ HIP Runtime not available\n");
         fprintf(stderr, "  ⚠️  CUDA→HIP translations will fail\n\n");
         return;
     }
-
     int device_count = 0;
     if (real_hipGetDeviceCount && real_hipGetDeviceCount(&device_count) == 0) {
         fprintf(stderr, "  ✓ HIP Runtime detected\n");
         fprintf(stderr, "  ✓ GPUs available: %d\n", device_count);
-
         if (device_count > 0 && real_hipGetDeviceProperties) {
-            char gpu_name[256] = {0};
-            int compute_units = 0;
-
-            // Get device properties (simple struct access)
+            // Get device properties with larger buffer for AMD GPU names
             struct {
-                char name[256];
+                char name[1024];  // FIXED: Increased from 256 to 1024
                 size_t totalGlobalMem;
                 size_t sharedMemPerBlock;
                 int regsPerBlock;
@@ -254,8 +246,9 @@ void apex_hip_init(void)
                 int deviceOverlap;
                 int multiProcessorCount;
             } prop;
-
+            memset(&prop, 0, sizeof(prop));  // FIXED: Zero initialize
             if (real_hipGetDeviceProperties(&prop, 0) == 0) {
+                prop.name[1023] = '\0';  // FIXED: Ensure null termination
                 fprintf(stderr, "  ✓ GPU 0: %s\n", prop.name);
                 fprintf(stderr, "  ✓ Compute Units: %d\n", prop.multiProcessorCount);
             }
@@ -263,7 +256,6 @@ void apex_hip_init(void)
     } else {
         fprintf(stderr, "  ⚠️  No GPUs detected\n");
     }
-
     fprintf(stderr, "\n");
 }
 
