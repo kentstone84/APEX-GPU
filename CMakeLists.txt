@@ -1,127 +1,93 @@
 cmake_minimum_required(VERSION 3.10)
+project(APEX_GPU_BRIDGES C)
 
-project(APEX_HIP_BRIDGE C)
-
+# -----------------------------------------------------------
+# Compiler configuration
+# -----------------------------------------------------------
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-# Warnings
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -fPIC")
 
-# ────────────────────────────────────────────────────────────────
-# ROCm / HIP detection
-# ────────────────────────────────────────────────────────────────
-set(ROCM_ROOT_HINTS
-    /opt/rocm
-    /opt/rocm-6.2
-    /opt/rocm-6.1
-    /opt/rocm-6.0
-)
+# -----------------------------------------------------------
+# REQUIRED FIX FOR ROCm/HIP
+# -----------------------------------------------------------
+# HIP headers require exactly ONE of these:
+#   __HIP_PLATFORM_AMD__ or __HIP_PLATFORM_NVIDIA__
+#
+# We are running on AMD MI300X → Define AMD platform
+# -----------------------------------------------------------
+add_definitions(-D__HIP_PLATFORM_AMD__)
 
-set(ROCM_INCLUDE_DIR "")
-set(ROCM_LIB_DIR "")
+# -----------------------------------------------------------
+# Locate ROCm
+# -----------------------------------------------------------
+set(ROCM_PATH "/opt/rocm")
 
-foreach(root ${ROCM_ROOT_HINTS})
-    if(EXISTS "${root}/include/hip/hip_runtime_api.h")
-        set(ROCM_INCLUDE_DIR "${root}/include")
-    endif()
-
-    if(EXISTS "${root}/lib/libamdhip64.so")
-        set(ROCM_LIB_DIR "${root}/lib")
-    elseif(EXISTS "${root}/lib64/libamdhip64.so")
-        set(ROCM_LIB_DIR "${root}/lib64")
-    endif()
-endforeach()
-
-if(ROCM_INCLUDE_DIR)
-    message(STATUS "ROCm include dir: ${ROCM_INCLUDE_DIR}")
-    include_directories(${ROCM_INCLUDE_DIR})
+if (EXISTS "${ROCM_PATH}/include")
+    message(STATUS "ROCm include dir: ${ROCM_PATH}/include")
+    include_directories("${ROCM_PATH}/include")
 else()
-    message(WARNING "ROCm HIP headers not found. Assuming system include paths provide hip_runtime_api.h")
+    message(FATAL_ERROR "ROCm include directory not found")
 endif()
 
-if(ROCM_LIB_DIR)
-    message(STATUS "ROCm lib dir: ${ROCM_LIB_DIR}")
-    link_directories(${ROCM_LIB_DIR})
-endif()
-
-# ────────────────────────────────────────────────────────────────
-# Common sources: profiler (if present)
-# ────────────────────────────────────────────────────────────────
-set(APEX_PROFILER_SOURCES "")
-
-if(EXISTS "${CMAKE_SOURCE_DIR}/apex_profiler.c")
-    list(APPEND APEX_PROFILER_SOURCES apex_profiler.c)
-    message(STATUS "Using apex_profiler.c")
+if (EXISTS "${ROCM_PATH}/lib")
+    message(STATUS "ROCm lib dir: ${ROCM_PATH}/lib")
+    link_directories("${ROCM_PATH}/lib")
 else()
-    message(WARNING "apex_profiler.c not found – profiling functions must be provided elsewhere or stubbed.")
+    message(FATAL_ERROR "ROCm lib directory not found")
 endif()
 
-# ────────────────────────────────────────────────────────────────
-# HIP Bridge library
-# ────────────────────────────────────────────────────────────────
-if(NOT EXISTS "${CMAKE_SOURCE_DIR}/apex_hip_bridge.c")
-    message(FATAL_ERROR "apex_hip_bridge.c not found in source directory.")
-endif()
+include_directories("${CMAKE_SOURCE_DIR}")
 
-add_library(apex_hip_bridge SHARED
+# -----------------------------------------------------------
+# Source files
+# -----------------------------------------------------------
+set(APEX_HIP_BRIDGE_SRC
     apex_hip_bridge.c
-    ${APEX_PROFILER_SOURCES}
 )
 
-target_link_libraries(apex_hip_bridge PRIVATE dl)
+set(APEX_CUBLAS_BRIDGE_SRC
+    apex_cublas_bridge.c
+)
 
+set(APEX_CUDNN_BRIDGE_SRC
+    apex_cudnn_bridge.c
+)
+
+# -----------------------------------------------------------
+# Build shared libraries
+# -----------------------------------------------------------
+add_library(apex_hip_bridge SHARED ${APEX_HIP_BRIDGE_SRC})
+add_library(apex_cublas_bridge SHARED ${APEX_CUBLAS_BRIDGE_SRC})
+add_library(apex_cudnn_bridge SHARED ${APEX_CUDNN_BRIDGE_SRC})
+
+# -----------------------------------------------------------
+# Link dynamic loader (dlopen/dlsym)
+# -----------------------------------------------------------
+target_link_libraries(apex_hip_bridge dl)
+target_link_libraries(apex_cublas_bridge dl)
+target_link_libraries(apex_cudnn_bridge dl)
+
+# -----------------------------------------------------------
+# Library output location
+# -----------------------------------------------------------
 set_target_properties(apex_hip_bridge PROPERTIES
     OUTPUT_NAME "apex_hip_bridge"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
 
-# ────────────────────────────────────────────────────────────────
-# Optional: cuBLAS bridge (if source exists)
-# ────────────────────────────────────────────────────────────────
-if(EXISTS "${CMAKE_SOURCE_DIR}/apex_cublas_bridge.c")
-    add_library(apex_cublas_bridge SHARED
-        apex_cublas_bridge.c
-        ${APEX_PROFILER_SOURCES}
-    )
-    target_link_libraries(apex_cublas_bridge PRIVATE dl)
-    set_target_properties(apex_cublas_bridge PROPERTIES
-        OUTPUT_NAME "apex_cublas_bridge"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    )
-    message(STATUS "Building apex_cublas_bridge")
-else()
-    message(STATUS "apex_cublas_bridge.c not found – skipping cuBLAS bridge build")
-endif()
+set_target_properties(apex_cublas_bridge PROPERTIES
+    OUTPUT_NAME "apex_cublas_bridge"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
 
-# ────────────────────────────────────────────────────────────────
-# Optional: cuDNN bridge (if source exists)
-# ────────────────────────────────────────────────────────────────
-if(EXISTS "${CMAKE_SOURCE_DIR}/apex_cudnn_bridge.c")
-    add_library(apex_cudnn_bridge SHARED
-        apex_cudnn_bridge.c
-        ${APEX_PROFILER_SOURCES}
-    )
-    target_link_libraries(apex_cudnn_bridge PRIVATE dl)
-    set_target_properties(apex_cudnn_bridge PROPERTIES
-        OUTPUT_NAME "apex_cudnn_bridge"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    )
-    message(STATUS "Building apex_cudnn_bridge")
-else()
-    message(STATUS "apex_cudnn_bridge.c not found – skipping cuDNN bridge build")
-endif()
+set_target_properties(apex_cudnn_bridge PROPERTIES
+    OUTPUT_NAME "apex_cudnn_bridge"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
 
-# ────────────────────────────────────────────────────────────────
-# Optional small test binary (if you want to ping HIP)
-# ────────────────────────────────────────────────────────────────
-if(EXISTS "${CMAKE_SOURCE_DIR}/test_hip_bridge.c")
-    add_executable(test_hip_bridge test_hip_bridge.c)
-    target_link_libraries(test_hip_bridge PRIVATE apex_hip_bridge dl)
-    set_target_properties(test_hip_bridge PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
-    )
-endif()
-
+# -----------------------------------------------------------
+# Final confirmation
+# -----------------------------------------------------------
 message(STATUS "APEX HIP Bridge configuration complete.")
