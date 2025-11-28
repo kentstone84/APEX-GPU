@@ -110,17 +110,33 @@ set_target_properties(apex_runtime PROPERTIES
 # ───────────────────────────────────────────────
 # CUDA Driver Shim
 # ───────────────────────────────────────────────
-add_library(apex_cuda_driver SHARED
-    apex_cuda_driver.c
-)
+# ───────────────────────────────────────────────
+# CUDA DRIVER + RUNTIME SHIMS (NVIDIA ONLY)
+# ───────────────────────────────────────────────
+if (EXISTS "/usr/local/cuda/include/cuda.h")
+    message(STATUS "CUDA detected — enabling CUDA driver shims")
 
-target_link_libraries(apex_cuda_driver dl)
+    add_library(apex_runtime SHARED
+        apex_runtime.c
+    )
 
-set_target_properties(apex_cuda_driver PROPERTIES
-    OUTPUT_NAME "apex_cuda_driver"
-    VERSION 1.0
-    SOVERSION 1
-)
+    target_link_libraries(apex_runtime dl)
+
+    add_library(apex_cuda_driver SHARED
+        apex_cuda_driver.c
+    )
+
+    target_link_libraries(apex_cuda_driver dl)
+
+    install(TARGETS
+        apex_runtime
+        apex_cuda_driver
+        LIBRARY DESTINATION lib
+    )
+
+else()
+    message(STATUS "CUDA NOT DETECTED — skipping apex_runtime and apex_cuda_driver")
+endif()
 
 # ───────────────────────────────────────────────
 # INSTALL
