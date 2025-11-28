@@ -1,133 +1,127 @@
 cmake_minimum_required(VERSION 3.10)
-project(APEX_CUDA_Driver C)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -fPIC")
-
-# Find CUDA (for headers only, we don't link to CUDA)
-find_package(CUDA QUIET)
-if(CUDA_FOUND)
-    include_directories(${CUDA_INCLUDE_DIRS})
-else()
-    # Try common CUDA include paths
-    set(CUDA_INCLUDE_PATHS
-       cmake_minimum_required(VERSION 3.10)
-project(APEX_GPU LANGUAGES C CXX)
+project(APEX_HIP_BRIDGE C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-message(STATUS "Configuring APEX-GPU for ROCm/HIP environment")
+# Warnings
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -fPIC")
 
-# -------------------------------------------------------
-# ROCm paths (RunPod default container)
-# -------------------------------------------------------
-set(ROCM_PATH /opt/rocm)
-set(HIP_PATH ${ROCM_PATH}/hip)
-set(ROCBLAS_PATH ${ROCM_PATH}/lib)
-set(MIOPEN_PATH ${ROCM_PATH}/lib)
-
-include_directories(
-    ${HIP_PATH}
-    ${HIP_PATH}/include
-    ${ROCM_PATH}/include
+# ────────────────────────────────────────────────────────────────
+# ROCm / HIP detection
+# ────────────────────────────────────────────────────────────────
+set(ROCM_ROOT_HINTS
+    /opt/rocm
+    /opt/rocm-6.2
+    /opt/rocm-6.1
+    /opt/rocm-6.0
 )
 
-link_directories(
-    ${ROCM_PATH}/lib
-    ${ROCM_PATH}/lib64
-)
+set(ROCM_INCLUDE_DIR "")
+set(ROCM_LIB_DIR "")
 
-# -------------------------------------------------------
-# Source files
-# -------------------------------------------------------
-set(SRC_DIR src/bridge)
+foreach(root ${ROCM_ROOT_HINTS})
+    if(EXISTS "${root}/include/hip/hip_runtime_api.h")
+        set(ROCM_INCLUDE_DIR "${root}/include")
+    endif()
 
-set(BRIDGE_SOURCES
-    ${SRC_DIR}/hip_bridge.c
-    ${SRC_DIR}/cublas_bridge.c
-    ${SRC_DIR}/cudnn_bridge.c
-)
-
-# -------------------------------------------------------
-# Build shared libraries
-# -------------------------------------------------------
-foreach(src_file ${BRIDGE_SOURCES})
-    get_filename_component(lib_name ${src_file} NAME_WE)
-
-    add_library(${lib_name} SHARED ${src_file})
-
-    target_link_libraries(${lib_name}
-        amdhip64
-        rocblas
-        MIOpen
-        pthread
-        dl
-    )
-
-    set_target_properties(${lib_name} PROPERTIES
-        POSITION_INDEPENDENT_CODE ON
-        OUTPUT_NAME ${lib_name}
-    )
+    if(EXISTS "${root}/lib/libamdhip64.so")
+        set(ROCM_LIB_DIR "${root}/lib")
+    elseif(EXISTS "${root}/lib64/libamdhip64.so")
+        set(ROCM_LIB_DIR "${root}/lib64")
+    endif()
 endforeach()
 
-# -------------------------------------------------------
-# Install rules
-# -------------------------------------------------------
-install(TARGETS hip_bridge cublas_bridge cudnn_bridge
-        LIBRARY DESTINATION lib)
- "/usr/local/cuda/include"
-        "/usr/include/cuda"
-        "/opt/cuda/include"
-    )
-    foreach(path ${CUDA_INCLUDE_PATHS})
-        if(EXISTS ${path}/cuda.h)
-            include_directories(${path})
-            message(STATUS "Found CUDA headers at: ${path}")
-            break()
-        endif()
-    endforeach()
+if(ROCM_INCLUDE_DIR)
+    message(STATUS "ROCm include dir: ${ROCM_INCLUDE_DIR}")
+    include_directories(${ROCM_INCLUDE_DIR})
+else()
+    message(WARNING "ROCm HIP headers not found. Assuming system include paths provide hip_runtime_api.h")
 endif()
 
-# APEX CUDA Driver library
-add_library(cuda SHARED
-    apex_cuda_driver.c
+if(ROCM_LIB_DIR)
+    message(STATUS "ROCm lib dir: ${ROCM_LIB_DIR}")
+    link_directories(${ROCM_LIB_DIR})
+endif()
+
+# ────────────────────────────────────────────────────────────────
+# Common sources: profiler (if present)
+# ────────────────────────────────────────────────────────────────
+set(APEX_PROFILER_SOURCES "")
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/apex_profiler.c")
+    list(APPEND APEX_PROFILER_SOURCES apex_profiler.c)
+    message(STATUS "Using apex_profiler.c")
+else()
+    message(WARNING "apex_profiler.c not found – profiling functions must be provided elsewhere or stubbed.")
+endif()
+
+# ────────────────────────────────────────────────────────────────
+# HIP Bridge library
+# ────────────────────────────────────────────────────────────────
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/apex_hip_bridge.c")
+    message(FATAL_ERROR "apex_hip_bridge.c not found in source directory.")
+endif()
+
+add_library(apex_hip_bridge SHARED
+    apex_hip_bridge.c
+    ${APEX_PROFILER_SOURCES}
 )
 
-# Link with dl (for dlopen/dlsym)
-target_link_libraries(cuda dl)
+target_link_libraries(apex_hip_bridge PRIVATE dl)
 
-# Set library properties
-set_target_properties(cuda PROPERTIES
-    VERSION 1.1
-    SOVERSION 1
-    OUTPUT_NAME "cuda"
+set_target_properties(apex_hip_bridge PROPERTIES
+    OUTPUT_NAME "apex_hip_bridge"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
 
-# Install
-install(TARGETS cuda
-    LIBRARY DESTINATION lib/x86_64-linux-gnu
-)
+# ────────────────────────────────────────────────────────────────
+# Optional: cuBLAS bridge (if source exists)
+# ────────────────────────────────────────────────────────────────
+if(EXISTS "${CMAKE_SOURCE_DIR}/apex_cublas_bridge.c")
+    add_library(apex_cublas_bridge SHARED
+        apex_cublas_bridge.c
+        ${APEX_PROFILER_SOURCES}
+    )
+    target_link_libraries(apex_cublas_bridge PRIVATE dl)
+    set_target_properties(apex_cublas_bridge PROPERTIES
+        OUTPUT_NAME "apex_cublas_bridge"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    )
+    message(STATUS "Building apex_cublas_bridge")
+else()
+    message(STATUS "apex_cublas_bridge.c not found – skipping cuBLAS bridge build")
+endif()
 
-# Create symbol export map
-# This ensures ALL symbols are exported
-set_target_properties(cuda PROPERTIES
-    LINK_FLAGS "-Wl,--version-script=${CMAKE_SOURCE_DIR}/exports.map"
-)
+# ────────────────────────────────────────────────────────────────
+# Optional: cuDNN bridge (if source exists)
+# ────────────────────────────────────────────────────────────────
+if(EXISTS "${CMAKE_SOURCE_DIR}/apex_cudnn_bridge.c")
+    add_library(apex_cudnn_bridge SHARED
+        apex_cudnn_bridge.c
+        ${APEX_PROFILER_SOURCES}
+    )
+    target_link_libraries(apex_cudnn_bridge PRIVATE dl)
+    set_target_properties(apex_cudnn_bridge PROPERTIES
+        OUTPUT_NAME "apex_cudnn_bridge"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    )
+    message(STATUS "Building apex_cudnn_bridge")
+else()
+    message(STATUS "apex_cudnn_bridge.c not found – skipping cuDNN bridge build")
+endif()
 
-# Test program
-add_executable(test_forwarding
-    test_forwarding.c
-)
-target_link_libraries(test_forwarding cuda dl)
-CMAKE
+# ────────────────────────────────────────────────────────────────
+# Optional small test binary (if you want to ping HIP)
+# ────────────────────────────────────────────────────────────────
+if(EXISTS "${CMAKE_SOURCE_DIR}/test_hip_bridge.c")
+    add_executable(test_hip_bridge test_hip_bridge.c)
+    target_link_libraries(test_hip_bridge PRIVATE apex_hip_bridge dl)
+    set_target_properties(test_hip_bridge PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+    )
+endif()
 
-cat > exports.map << 'EXPORTS'
-{
-  global:
-    cu*;
-  local:
-    *;
-};
+message(STATUS "APEX HIP Bridge configuration complete.")
