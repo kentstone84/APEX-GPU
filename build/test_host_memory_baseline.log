@@ -1,0 +1,67 @@
+
+╔═══════════════════════════════════════════════════════════════╗
+║          CUDA Host (Pinned) Memory Test                      ║
+╚═══════════════════════════════════════════════════════════════╝
+
+1. Testing cudaMallocHost (pinned memory)...
+   ✓ Allocated 16777216 bytes of pinned memory
+   ✓ Initialized 4194304 elements
+
+2. Testing cudaHostAlloc with flags...
+   ✓ Allocated 16777216 bytes with cudaHostAlloc
+   ✓ Initialized host-allocated memory
+
+3. Allocating regular (pageable) memory for comparison...
+   ✓ Allocated 16777216 bytes of pageable memory
+
+4. Allocating device memory...
+   ✓ Allocated 16777216 bytes on device
+
+5. Performance test: Pinned vs Pageable memory transfers...
+   Testing 10 iterations...
+
+╔═══════════════════════════════════════════════════════════════╗
+║              PINNED vs PAGEABLE PERFORMANCE                   ║
+╠═══════════════════════════════════════════════════════════════╣
+║                                                               ║
+║  Transfer size: 16 MB                                        ║
+║                                                               ║
+║  PINNED MEMORY:                                               ║
+║    H2D: 0.727 ms (21.49 GB/s)                                ║
+║    D2H: 0.812 ms (19.25 GB/s)                                ║
+║                                                               ║
+║  PAGEABLE MEMORY:                                             ║
+║    H2D: 1.332 ms (11.73 GB/s)                                ║
+║    D2H: 1.366 ms (11.44 GB/s)                                ║
+║                                                               ║
+║  SPEEDUP (Pinned vs Pageable):                                ║
+║    H2D: 1.83x faster                                        ║
+║    D2H: 1.68x faster                                        ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+6. Testing async operations with pinned memory...
+   ✓ Async pipeline completed in 10.371 ms
+
+7. Verifying computation results...
+   ✓ All 4194304 elements verified correctly
+
+8. Testing memory properties...
+   ✓ Pinned memory is CPU-accessible
+
+9. Cleaning up resources...
+   ✓ All memory freed
+
+╔═══════════════════════════════════════════════════════════════╗
+║            ✅ ALL HOST MEMORY TESTS PASSED                   ║
+╠═══════════════════════════════════════════════════════════════╣
+║  • cudaMallocHost (pinned allocation)                         ║
+║  • cudaHostAlloc (with flags)                                 ║
+║  • cudaFreeHost (deallocation)                                ║
+║  • Pinned memory performance advantages                       ║
+║  • Async operations with pinned memory                        ║
+║  • CPU accessibility verification                             ║
+║                                                               ║
+║  💡 Pinned memory provides 1.75x faster transfers!          ║
+╚═══════════════════════════════════════════════════════════════╝
+

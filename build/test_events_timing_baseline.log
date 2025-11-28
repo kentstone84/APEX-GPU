@@ -1,0 +1,38 @@
+
+╔═══════════════════════════════════════════════════════════════╗
+║            CUDA Event API Test - Timing & Sync               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+1. Allocating device memory (4194304 bytes)...
+2. Creating CUDA events...
+3. Recording start event...
+4. Launching kernel (warming up GPU)...
+5. Recording stop event...
+6. Synchronizing stop event...
+7. Calculating elapsed time...
+
+╔═══════════════════════════════════════════════════════════════╗
+║                    TIMING RESULTS                             ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Kernel execution time:    0.750 ms                         ║
+║  Data processed:               4 MB                           ║
+║  Throughput:                5.21 GB/s                        ║
+╚═══════════════════════════════════════════════════════════════╝
+
+8. Testing cudaEventQuery...
+   ✓ Event completed
+
+9. Running multiple timing iterations...
+   Iteration 1: 0.045 ms
+   Iteration 2: 0.043 ms
+   Iteration 3: 0.043 ms
+   Iteration 4: 0.043 ms
+   Iteration 5: 0.042 ms
+   Average: 0.043 ms
+
+10. Cleaning up...
+
+╔═══════════════════════════════════════════════════════════════╗
+║                  ✅ ALL EVENT TESTS PASSED                   ║
+╚═══════════════════════════════════════════════════════════════╝
+

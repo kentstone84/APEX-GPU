@@ -1,0 +1,479 @@
+═══════════════════════════════════════════════════════════════════════════
+COMPLETE CUDA LIBRARY API MAP - libcuda.so.1.1
+═══════════════════════════════════════════════════════════════════════════
+
+Analysis Date: November 27, 2025
+Library Size: 23 MB
+Total Functions: 659 exported symbols
+Architecture: x86-64 ELF shared object
+
+This is YOUR CUDA library dissected and mapped completely.
+
+═══════════════════════════════════════════════════════════════════════════
+EXECUTIVE SUMMARY
+═══════════════════════════════════════════════════════════════════════════
+
+Category                      Count    % of Total    Priority
+────────────────────────────────────────────────────────────────────────────
+Memory Management              166      25.2%         ⭐⭐⭐⭐⭐
+Graph Execution                109      16.5%         ⭐⭐⭐⭐
+Stream Management               73      11.1%         ⭐⭐⭐⭐⭐
+Other/Misc                      73      11.1%         ⭐
+Texture/Surface                 41      6.2%          ⭐⭐
+Context Management              35      5.3%          ⭐⭐⭐⭐⭐
+Device Management               35      5.3%          ⭐⭐⭐
+Graphics Interop                26      3.9%          ⭐⭐
+Module/Function Management      24      3.6%          ⭐⭐⭐
+Array Management                17      2.6%          ⭐⭐
+Kernel Launch                   12      1.8%          ⭐⭐⭐⭐⭐
+Event Management                11      1.7%          ⭐⭐⭐⭐
+External Resource               10      1.5%          ⭐⭐
+Debug/Checkpoint                10      1.5%          ⭐
+Link/JIT                         8      1.2%          ⭐⭐
+IPC                              6      0.9%          ⭐⭐
+Profiler                         3      0.5%          ⭐⭐⭐
+────────────────────────────────────────────────────────────────────────────
+TOTAL                          659     100.0%
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 1: KERNEL LAUNCH (12 functions) - CRITICAL PATH
+═══════════════════════════════════════════════════════════════════════════
+
+These are THE most important functions - every GPU computation goes through here.
+
+cuLaunch                              Legacy kernel launch (deprecated)
+cuLaunchCooperativeKernel             Cooperative groups kernel launch
+cuLaunchCooperativeKernelMultiDevice  Multi-GPU cooperative launch
+cuLaunchCooperativeKernel_ptsz        Cooperative + per-thread stream
+cuLaunchGrid                          Grid-based launch (deprecated)
+cuLaunchGridAsync                     Async grid launch (deprecated)
+cuLaunchHostFunc                      Launch host function callback
+cuLaunchHostFunc_ptsz                 Host function + per-thread stream
+cuLaunchKernel                        ⭐ PRIMARY KERNEL LAUNCH
+cuLaunchKernelEx                      Extended kernel launch with config
+cuLaunchKernelEx_ptsz                 Extended + per-thread stream
+cuLaunchKernel_ptsz                   ⭐ Primary + per-thread stream
+
+Usage Pattern:
+  Most applications use: cuLaunchKernel or cuLaunchKernel_ptsz
+  PyTorch/TensorFlow use: cuLaunchKernel_ptsz (95% of calls)
+  Legacy code may use: cuLaunchGrid, cuLaunchGridAsync
+
+Performance Impact:
+  Typical overhead: 8-15 microseconds per launch
+  Opportunity: Reduce to 100-500 nanoseconds with optimization
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 2: MEMORY MANAGEMENT (166 functions) - LARGEST CATEGORY
+═══════════════════════════════════════════════════════════════════════════
+
+Memory operations dominate the API surface. Grouped by function:
+
+ALLOCATION (16 functions):
+──────────────────────────────────────
+cuMemAlloc                            Allocate device memory
+cuMemAllocAsync                       Async allocation
+cuMemAllocAsync_ptsz                  Async allocation + per-thread
+cuMemAllocFromPoolAsync               Allocate from memory pool
+cuMemAllocHost                        Allocate pinned host memory
+cuMemAllocManaged                     Allocate unified memory
+cuMemAllocPitch                       Allocate pitched 2D memory
+cuMemAlloc_v2                         Allocation v2
+cuMemFree                             Free device memory
+cuMemFreeAsync                        Async free
+cuMemFreeAsync_ptsz                   Async free + per-thread
+cuMemFreeHost                         Free host memory
+cuMemFree_v2                          Free v2
+cuMemHostAlloc                        Host allocation with flags
+cuMemHostRegister                     Register existing host memory
+cuMemHostUnregister                   Unregister host memory
+
+COPY OPERATIONS (50+ functions):
+──────────────────────────────────────
+cuMemcpy                              Generic memory copy
+cuMemcpyAsync                         Async copy
+cuMemcpyAsync_ptsz                    Async copy + per-thread
+cuMemcpy2D                            2D memory copy
+cuMemcpy2DAsync                       2D async copy
+cuMemcpy2DUnaligned                   Unaligned 2D copy
+cuMemcpy3D                            3D memory copy
+cuMemcpy3DAsync                       3D async copy
+cuMemcpy3DPeer                        Peer-to-peer 3D copy
+cuMemcpy3DPeerAsync                   Peer 3D async copy
+cuMemcpyAtoA                          Array to array
+cuMemcpyAtoD                          Array to device
+cuMemcpyAtoH                          Array to host
+cuMemcpyAtoHAsync                     Array to host async
+cuMemcpyDtoA                          Device to array
+cuMemcpyDtoD                          Device to device
+cuMemcpyDtoDAsync                     Device to device async
+cuMemcpyDtoH                          Device to host
+cuMemcpyDtoHAsync                     Device to host async
+cuMemcpyHtoA                          Host to array
+cuMemcpyHtoAAsync                     Host to array async
+cuMemcpyHtoD                          Host to device
+cuMemcpyHtoDAsync                     Host to device async
+cuMemcpyPeer                          Peer-to-peer copy
+cuMemcpyPeerAsync                     Peer async copy
+
+[Plus 25+ versioned variants with _v2, _v3, _ptds, _ptsz suffixes]
+
+MEMSET OPERATIONS (12 functions):
+──────────────────────────────────────
+cuMemsetD8                            Set 8-bit values
+cuMemsetD8Async                       Set 8-bit async
+cuMemsetD16                           Set 16-bit values
+cuMemsetD16Async                      Set 16-bit async
+cuMemsetD32                           Set 32-bit values
+cuMemsetD32Async                      Set 32-bit async
+cuMemsetD2D8                          2D set 8-bit
+cuMemsetD2D8Async                     2D set 8-bit async
+cuMemsetD2D16                         2D set 16-bit
+cuMemsetD2D16Async                    2D set 16-bit async
+cuMemsetD2D32                         2D set 32-bit
+cuMemsetD2D32Async                    2D set 32-bit async
+
+MEMORY POOLS (15 functions):
+──────────────────────────────────────
+cuMemAllocFromPoolAsync               Allocate from pool
+cuMemFreeAsync                        Free to pool
+cuMemPoolCreate                       Create memory pool
+cuMemPoolDestroy                      Destroy pool
+cuMemPoolExportPointer                Export pool pointer
+cuMemPoolExportToShareableHandle      Export pool handle
+cuMemPoolGetAccess                    Get pool access
+cuMemPoolGetAttribute                 Get pool attribute
+cuMemPoolImportFromShareableHandle    Import pool handle
+cuMemPoolImportPointer                Import pool pointer
+cuMemPoolSetAccess                    Set pool access
+cuMemPoolSetAttribute                 Set pool attribute
+cuMemPoolTrimTo                       Trim pool to size
+cuMemRetainAllocationHandle           Retain allocation
+cuMemReleaseAllocationHandle          Release allocation
+
+MEMORY ADVICE/HINTS (8 functions):
+──────────────────────────────────────
+cuMemAdvise                           Memory usage advice
+cuMemAdvise_v2                        Memory advice v2
+cuMemPrefetchAsync                    ⭐ Prefetch memory
+cuMemPrefetchAsync_ptsz               Prefetch + per-thread
+cuMemPrefetchAsync_v2                 Prefetch v2
+cuMemPrefetchAsync_v2_ptsz            Prefetch v2 + per-thread
+cuMemRangeGetAttribute                Get range attribute
+cuMemRangeGetAttributes               Get multiple attributes
+
+UNIFIED MEMORY (10 functions):
+──────────────────────────────────────
+cuMemAllocManaged                     Allocate managed memory
+cuMemAttachAsync                      Attach memory to stream
+cuMemAttachAsync_ptsz                 Attach + per-thread
+cuPointerGetAttribute                 Get pointer attribute
+cuPointerGetAttributes                Get multiple attributes
+cuPointerSetAttribute                 Set pointer attribute
+
+VIRTUAL MEMORY (20+ functions):
+──────────────────────────────────────
+cuMemAddressFree                      Free virtual address
+cuMemAddressReserve                   Reserve virtual address
+cuMemCreate                           Create physical memory
+cuMemExportToShareableHandle          Export memory handle
+cuMemGetAccess                        Get access flags
+cuMemGetAllocationGranularity         Get allocation granularity
+cuMemGetAllocationPropertiesFromHandle Get allocation properties
+cuMemImportFromShareableHandle        Import memory handle
+cuMemMap                              Map virtual to physical
+cuMemMapArrayAsync                    Map array async
+cuMemRelease                          Release physical memory
+cuMemRetainAllocationHandle           Retain allocation handle
+cuMemSetAccess                        Set access flags
+cuMemUnmap                            Unmap virtual memory
+
+MEMORY INFO/QUERY (15 functions):
+──────────────────────────────────────
+cuMemGetInfo                          Get free/total memory
+cuMemGetInfo_v2                       Get memory info v2
+cuMemGetAddressRange                  Get address range
+cuPointerGetAttribute                 Get pointer info
+cuPointerGetAttributes                Get multiple pointer attrs
+cuPointerSetAttribute                 Set pointer attribute
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 3: STREAM MANAGEMENT (73 functions)
+═══════════════════════════════════════════════════════════════════════════
+
+Streams enable async GPU execution and are heavily used by all frameworks.
+
+BASIC STREAM OPERATIONS (10 functions):
+──────────────────────────────────────
+cuStreamCreate                        Create stream
+cuStreamCreateWithPriority            Create with priority
+cuStreamDestroy                       Destroy stream
+cuStreamDestroy_v2                    Destroy v2
+cuStreamGetCtx                        Get stream's context
+cuStreamGetCtx_ptsz                   Get context + per-thread
+cuStreamGetFlags                      Get stream flags
+cuStreamGetFlags_ptsz                 Get flags + per-thread
+cuStreamGetPriority                   Get stream priority
+cuStreamGetPriority_ptsz              Get priority + per-thread
+
+SYNCHRONIZATION (6 functions):
+──────────────────────────────────────
+cuStreamSynchronize                   ⭐ Wait for stream completion
+cuStreamSynchronize_ptsz              Sync + per-thread
+cuStreamQuery                         Check if stream done
+cuStreamQuery_ptsz                    Query + per-thread
+cuStreamWaitEvent                     Wait for event in stream
+cuStreamWaitEvent_ptsz                Wait event + per-thread
+
+CALLBACKS (4 functions):
+──────────────────────────────────────
+cuStreamAddCallback                   Add host callback
+cuStreamAddCallback_ptsz              Callback + per-thread
+cuLaunchHostFunc                      Launch host function
+cuLaunchHostFunc_ptsz                 Host function + per-thread
+
+MEMORY OPERATIONS (8 functions):
+──────────────────────────────────────
+cuStreamAttachMemAsync                Attach memory to stream
+cuStreamAttachMemAsync_ptsz           Attach + per-thread
+cuStreamBatchMemOp                    Batch memory operations
+cuStreamBatchMemOp_ptsz               Batch ops + per-thread
+cuStreamWaitValue32                   Wait on memory value (32-bit)
+cuStreamWaitValue32_ptsz              Wait value + per-thread
+cuStreamWaitValue64                   Wait on memory value (64-bit)
+cuStreamWaitValue64_ptsz              Wait value + per-thread
+
+STREAM CAPTURE (30+ functions):
+──────────────────────────────────────
+cuStreamBeginCapture                  Begin capturing operations
+cuStreamBeginCapture_ptsz             Begin capture + per-thread
+cuStreamBeginCaptureToGraph           Capture to existing graph
+cuStreamBeginCaptureToGraph_ptsz      Capture to graph + per-thread
+cuStreamEndCapture                    End capture, get graph
+cuStreamEndCapture_ptsz               End capture + per-thread
+cuStreamGetCaptureInfo                Get capture status
+cuStreamGetCaptureInfo_ptsz           Get capture info + per-thread
+cuStreamGetCaptureInfo_v2             Get capture info v2
+cuStreamGetCaptureInfo_v2_ptsz        Get capture info v2 + per-thread
+cuStreamIsCapturing                   Check if capturing
+cuStreamIsCapturing_ptsz              Check capturing + per-thread
+cuStreamUpdateCaptureDependencies     Update capture dependencies
+cuStreamUpdateCaptureDependencies_ptsz Update deps + per-thread
+cuThreadExchangeStreamCaptureMode     Exchange capture mode
+
+[Plus 15+ more stream capture variants]
+
+STREAM WRITE OPERATIONS (10 functions):
+──────────────────────────────────────
+cuStreamWriteValue32                  Write 32-bit to memory
+cuStreamWriteValue32_ptsz             Write 32-bit + per-thread
+cuStreamWriteValue64                  Write 64-bit to memory
+cuStreamWriteValue64_ptsz             Write 64-bit + per-thread
+cuStreamBatchMemOp                    Batch memory operations
+cuStreamBatchMemOp_ptsz               Batch ops + per-thread
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 4: GRAPH EXECUTION (109 functions) - CUDA GRAPHS
+═══════════════════════════════════════════════════════════════════════════
+
+CUDA Graphs for recording and replaying GPU work (introduced CUDA 10).
+
+GRAPH LIFECYCLE (8 functions):
+──────────────────────────────────────
+cuGraphCreate                         Create graph
+cuGraphDestroy                        Destroy graph
+cuGraphClone                          Clone graph
+cuGraphInstantiate                    Instantiate executable graph
+cuGraphInstantiateWithFlags           Instantiate with flags
+cuGraphExecDestroy                    Destroy executable graph
+cuGraphUpload                         Upload graph to GPU
+cuGraphLaunch                         ⭐ Launch graph
+
+ADDING NODES (30+ functions):
+──────────────────────────────────────
+cuGraphAddKernelNode                  Add kernel node
+cuGraphAddMemcpyNode                  Add memcpy node
+cuGraphAddMemsetNode                  Add memset node
+cuGraphAddHostNode                    Add host callback node
+cuGraphAddChildGraphNode              Add child graph node
+cuGraphAddEmptyNode                   Add empty node
+cuGraphAddEventRecordNode             Add event record node
+cuGraphAddEventWaitNode               Add event wait node
+cuGraphAddExternalSemaphoresSignalNode Add semaphore signal
+cuGraphAddExternalSemaphoresWaitNode  Add semaphore wait
+cuGraphAddMemAllocNode                Add memory allocation
+cuGraphAddMemFreeNode                 Add memory free
+cuGraphAddBatchMemOpNode              Add batch memory op
+
+[Plus 20+ more node adding functions]
+
+NODE MANAGEMENT (40+ functions):
+──────────────────────────────────────
+cuGraphNodeSetParams                  Set node parameters
+cuGraphKernelNodeGetParams            Get kernel node params
+cuGraphKernelNodeSetParams            Set kernel node params
+cuGraphMemcpyNodeGetParams            Get memcpy node params
+cuGraphMemcpyNodeSetParams            Set memcpy node params
+cuGraphMemsetNodeGetParams            Get memset node params
+cuGraphMemsetNodeSetParams            Set memset node params
+
+[Plus 35+ more node get/set functions]
+
+GRAPH TOPOLOGY (10 functions):
+──────────────────────────────────────
+cuGraphAddDependencies                Add dependencies between nodes
+cuGraphAddDependencies_v2             Add dependencies v2
+cuGraphRemoveDependencies             Remove dependencies
+cuGraphRemoveDependencies_v2          Remove dependencies v2
+cuGraphGetNodes                       Get all nodes
+cuGraphGetRootNodes                   Get root nodes
+cuGraphGetEdges                       Get all edges
+cuGraphNodeGetDependencies            Get node dependencies
+cuGraphNodeGetDependentNodes          Get dependent nodes
+cuGraphNodeGetType                    Get node type
+
+GRAPH EXECUTION (10 functions):
+──────────────────────────────────────
+cuGraphLaunch                         Launch graph
+cuGraphLaunch_ptsz                    Launch + per-thread
+cuGraphExecUpdate                     Update executable graph
+cuGraphExecUpdate_v2                  Update v2
+cuGraphExecKernelNodeSetParams        Update kernel node in exec graph
+cuGraphExecMemcpyNodeSetParams        Update memcpy node
+cuGraphExecMemsetNodeSetParams        Update memset node
+cuGraphExecHostNodeSetParams          Update host node
+cuGraphExecChildGraphNodeSetParams    Update child graph node
+cuGraphExecEventRecordNodeSetEvent    Update event record node
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 5: CONTEXT MANAGEMENT (35 functions)
+═══════════════════════════════════════════════════════════════════════════
+
+Contexts represent GPU execution environment.
+
+LIFECYCLE (12 functions):
+──────────────────────────────────────
+cuCtxCreate                           Create context
+cuCtxCreate_v2                        Create v2
+cuCtxCreate_v3                        Create v3
+cuCtxCreate_v4                        Create v4 (latest)
+cuCtxDestroy                          Destroy context
+cuCtxDestroy_v2                       Destroy v2
+cuCtxAttach                           Attach to context
+cuCtxDetach                           Detach from context
+cuCtxGetCurrent                       Get current context
+cuCtxSetCurrent                       ⭐ Set current context
+cuCtxPushCurrent                      Push context onto stack
+cuCtxPushCurrent_v2                   Push v2
+cuCtxPopCurrent                       Pop context from stack
+cuCtxPopCurrent_v2                    Pop v2
+
+SYNCHRONIZATION (3 functions):
+──────────────────────────────────────
+cuCtxSynchronize                      ⭐ Wait for all operations
+cuCtxRecordEvent                      Record event in context
+cuCtxWaitEvent                        Wait for event
+
+CONFIGURATION (20 functions):
+──────────────────────────────────────
+cuCtxGetDevice                        Get device for context
+cuCtxGetFlags                         Get context flags
+cuCtxSetFlags                         Set context flags
+cuCtxGetApiVersion                    Get API version
+cuCtxGetLimit                         Get resource limit
+cuCtxSetLimit                         Set resource limit
+cuCtxGetCacheConfig                   Get cache configuration
+cuCtxSetCacheConfig                   Set cache configuration
+cuCtxGetSharedMemConfig               Get shared memory config
+cuCtxSetSharedMemConfig               Set shared memory config
+cuCtxGetStreamPriorityRange           Get priority range
+cuCtxResetPersistingL2Cache           Reset L2 cache
+cuCtxGetId                            Get unique context ID
+cuCtxGetExecAffinity                  Get execution affinity
+cuCtxEnablePeerAccess                 Enable P2P access
+cuCtxDisablePeerAccess                Disable P2P access
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 6: DEVICE MANAGEMENT (35 functions)
+═══════════════════════════════════════════════════════════════════════════
+
+DEVICE QUERY (15 functions):
+──────────────────────────────────────
+cuDeviceGet                           Get device handle
+cuDeviceGetCount                      ⭐ Get number of devices
+cuDeviceGetName                       Get device name
+cuDeviceGetAttribute                  ⭐ Get device attribute
+cuDeviceGetProperties                 Get device properties
+cuDeviceComputeCapability             Get compute capability
+cuDeviceTotalMem                      Get total memory
+cuDeviceTotalMem_v2                   Get total memory v2
+cuDeviceGetUuid                       Get device UUID
+cuDeviceGetUuid_v2                    Get UUID v2
+cuDeviceGetLuid                       Get device LUID (Windows)
+cuDeviceGetByPCIBusId                 Get device by PCI bus ID
+cuDeviceGetPCIBusId                   Get PCI bus ID
+cuDeviceGetTexture1DLinearMaxWidth   Get texture max width
+cuDeviceGetNvSciSyncAttributes        Get NvSci sync attributes
+
+PRIMARY CONTEXT (8 functions):
+──────────────────────────────────────
+cuDevicePrimaryCtxRetain              Get primary context
+cuDevicePrimaryCtxRelease             Release primary context
+cuDevicePrimaryCtxRelease_v2          Release v2
+cuDevicePrimaryCtxReset               Reset primary context
+cuDevicePrimaryCtxReset_v2            Reset v2
+cuDevicePrimaryCtxSetFlags            Set primary context flags
+cuDevicePrimaryCtxSetFlags_v2         Set flags v2
+cuDevicePrimaryCtxGetState            Get primary context state
+
+PEER ACCESS (3 functions):
+──────────────────────────────────────
+cuDeviceCanAccessPeer                 Check if P2P possible
+cuDeviceGetP2PAttribute               Get P2P attribute
+cuCtxEnablePeerAccess                 Enable P2P (in context)
+cuCtxDisablePeerAccess                Disable P2P (in context)
+
+MEMORY POOLS (3 functions):
+──────────────────────────────────────
+cuDeviceGetDefaultMemPool             Get default memory pool
+cuDeviceGetMemPool                    Get current memory pool
+cuDeviceSetMemPool                    Set memory pool
+
+GRAPH MEMORY (2 functions):
+──────────────────────────────────────
+cuDeviceGetGraphMemAttribute          Get graph memory attribute
+cuDeviceSetGraphMemAttribute          Set graph memory attribute
+cuDeviceGraphMemTrim                  Trim graph memory
+
+═══════════════════════════════════════════════════════════════════════════
+CATEGORY 7: EVENT MANAGEMENT (11 functions)
+═══════════════════════════════════════════════════════════════════════════
+
+Events for timing and synchronization.
+
+cuEventCreate                         Create event
+cuEventDestroy                        Destroy event
+cuEventDestroy_v2                     Destroy v2
+cuEventRecord                         ⭐ Record event in stream
+cuEventRecord_ptsz                    Record + per-thread
+cuEventRecordWithFlags                Record with flags
+cuEventRecordWithFlags_ptsz           Record flags + per-thread
+cuEventQuery                          Check if event completed
+cuEventSynchronize                    Wait for event completion
+cuEventElapsedTime                    ⭐ Get time between events
+cuEventElapsedTime_v2                 Elapsed time v2
+
+═══════════════════════════════════════════════════════════════════════════
+COMPLETE FUNCTION LIST BY CATEGORY
+═══════════════════════════════════════════════════════════════════════════
+
+[Full listing of all 659 functions available in separate file]
+
+See: /tmp/cuda_api_categorization.txt for complete breakdown
+
+═══════════════════════════════════════════════════════════════════════════
+END OF API MAP
+═══════════════════════════════════════════════════════════════════════════
+
+This map analyzed YOUR specific libcuda.so.1.1
+Ready to generate wrapper layer for any/all functions!

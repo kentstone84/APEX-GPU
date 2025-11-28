@@ -1,0 +1,85 @@
+
+╔═══════════════════════════════════════════════════════════════╗
+║              CUDA Device Management Test                      ║
+╚═══════════════════════════════════════════════════════════════╝
+
+1. Testing cudaGetDeviceCount...
+   ✓ Found 1 CUDA device(s)
+
+2. Enumerating all devices...
+
+   Device 0: NVIDIA GeForce RTX 5080
+      Compute Capability:     12.0
+      Total Global Memory:    15.92 GB
+      Multiprocessors:        84
+      Clock Rate:             2.67 GHz
+      Memory Clock Rate:      15.00 GHz
+      Memory Bus Width:       256-bit
+      L2 Cache Size:          64.00 MB
+      Max Threads per Block:  1024
+      Max Block Dimensions:   [1024, 1024, 64]
+      Max Grid Dimensions:    [2147483647, 65535, 65535]
+      Warp Size:              32
+
+3. Testing cudaGetDevice...
+   ✓ Current device: 0
+
+4. Testing cudaSetDevice...
+   ✓ Successfully set device to 0
+   ✓ Restored device to 0
+
+5. Testing cudaDeviceGetAttribute...
+   ✓ Max Threads Per Block              : 1024
+   ✓ Max Block Dim X                    : 1024
+   ✓ Max Block Dim Y                    : 1024
+   ✓ Max Block Dim Z                    : 64
+   ✓ Max Grid Dim X                     : 2147483647
+   ✓ Max Grid Dim Y                     : 65535
+   ✓ Max Grid Dim Z                     : 65535
+   ✓ Warp Size                          : 32
+   ✓ Multiprocessor Count               : 84
+   ✓ Clock Rate (kHz)                   : 2670000
+   ✓ Memory Clock Rate (kHz)            : 15001000
+   ✓ L2 Cache Size (bytes)              : 67108864
+   ✓ Max Shared Memory Per Block        : 49152
+   ✓ Compute Capability Major           : 12
+   ✓ Compute Capability Minor           : 0
+   Summary: 15/15 attributes retrieved successfully
+
+6. Testing cudaMemGetInfo...
+   ✓ Total Memory:     15.92 GB
+   ✓ Free Memory:      14.52 GB
+   ✓ Used Memory:      1.40 GB (8.8%)
+
+7. Testing memory allocation tracking...
+   ✓ Allocated:        100.00 MB (requested 100.00 MB)
+   ✓ Memory tracking accurate
+   ✓ Memory freed successfully
+
+8. Multi-device test skipped (only 1 device)
+
+9. cudaDeviceReset test...
+   ℹ Skipping cudaDeviceReset (would reset all device state)
+   ℹ In production: cudaDeviceReset() should be called at shutdown
+
+╔═══════════════════════════════════════════════════════════════╗
+║                 DEVICE MANAGEMENT SUMMARY                     ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Devices Found:          1                                   ║
+║  Current Device:         0                                   ║
+║  Attributes Retrieved:   15/15                                ║
+║  Total GPU Memory:       15.92 GB                             ║
+║  Free GPU Memory:        14.52 GB                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════════╗
+║          ✅ ALL DEVICE MANAGEMENT TESTS PASSED               ║
+╠═══════════════════════════════════════════════════════════════╣
+║  • cudaGetDeviceCount                                         ║
+║  • cudaGetDevice / cudaSetDevice                              ║
+║  • cudaDeviceGetAttribute (15 attributes)                     ║
+║  • cudaMemGetInfo                                             ║
+║  • cudaGetDeviceProperties                                    ║
+║  • Memory allocation tracking                                 ║
+╚═══════════════════════════════════════════════════════════════╝
+

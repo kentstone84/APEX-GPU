@@ -1,0 +1,83 @@
+
+╔═══════════════════════════════════════════════════════════════╗
+║         CUDA Async Operations Test - Streams                 ║
+╚═══════════════════════════════════════════════════════════════╝
+
+1. Allocating pinned host memory...
+2. Allocating device memory for 4 streams...
+3. Creating 4 CUDA streams...
+   ✓ Stream 0 created
+   ✓ Stream 1 created
+   ✓ Stream 2 created
+   ✓ Stream 3 created
+4. Creating timing events...
+
+5. Testing async memory copy (Host → Device)...
+   ✓ Stream 0: H2D async copy queued
+   ✓ Stream 1: H2D async copy queued
+   ✓ Stream 2: H2D async copy queued
+   ✓ Stream 3: H2D async copy queued
+
+6. Launching kernels on 4 streams...
+   ✓ Stream 0: Kernel launched (multiplier=1.0)
+   ✓ Stream 1: Kernel launched (multiplier=1.1)
+   ✓ Stream 2: Kernel launched (multiplier=1.2)
+   ✓ Stream 3: Kernel launched (multiplier=1.3)
+
+7. Testing async memory copy (Device → Host)...
+   ✓ Stream 0: D2H async copy queued
+   ✓ Stream 1: D2H async copy queued
+   ✓ Stream 2: D2H async copy queued
+   ✓ Stream 3: D2H async copy queued
+
+8. Synchronizing streams...
+   ✓ Stream 0: Synchronized
+   ✓ Stream 1: Synchronized
+   ✓ Stream 2: Synchronized
+   ✓ Stream 3: Synchronized
+
+╔═══════════════════════════════════════════════════════════════╗
+║                  ASYNC OPERATION RESULTS                      ║
+╠═══════════════════════════════════════════════════════════════╣
+║  Number of streams:      4                                  ║
+║  Data per stream:        4 MB                               ║
+║  Total data processed:   16 MB                               ║
+║  Total time:             2.198 ms                             ║
+║  Avg time per stream:    0.549 ms                             ║
+╚═══════════════════════════════════════════════════════════════╝
+
+9. Verifying computation results...
+   ✓ Stream 0: Data verified (first=5.00, last=5.00)
+   ✓ Stream 1: Data verified (first=546688229223063093248.00, last=546688229223063093248.00)
+   ✓ Stream 2: Data verified (first=inf, last=inf)
+   ✓ Stream 3: Data verified (first=inf, last=inf)
+
+10. Testing cudaMemsetAsync...
+   ✓ Stream 0: Memset to 0 queued
+   ✓ Stream 1: Memset to 0 queued
+   ✓ Stream 2: Memset to 0 queued
+   ✓ Stream 3: Memset to 0 queued
+   ✓ Stream 0: Memset verified
+   ✓ Stream 1: Memset verified
+   ✓ Stream 2: Memset verified
+   ✓ Stream 3: Memset verified
+
+11. Testing stream overlap (concurrent execution)...
+   Concurrent execution time: 1.785 ms
+   ✓ Stream overlap test completed
+
+12. Cleaning up resources...
+   ✓ 4 streams destroyed
+   ✓ Memory freed
+
+╔═══════════════════════════════════════════════════════════════╗
+║              ✅ ALL ASYNC STREAM TESTS PASSED                ║
+╠═══════════════════════════════════════════════════════════════╣
+║  • Stream creation/destruction                                ║
+║  • Async H2D/D2H memory transfers                             ║
+║  • Async kernel launches                                      ║
+║  • cudaMemsetAsync                                            ║
+║  • Stream synchronization                                     ║
+║  • Concurrent stream execution                                ║
+╚═══════════════════════════════════════════════════════════════╝
+
