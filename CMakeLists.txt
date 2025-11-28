@@ -1,4 +1,3 @@
-cat > CMakeLists.txt << 'CMAKE'
 cmake_minimum_required(VERSION 3.16)
 project(APEX_GPU C)
 
