@@ -11,7 +11,74 @@ if(CUDA_FOUND)
 else()
     # Try common CUDA include paths
     set(CUDA_INCLUDE_PATHS
-        "/usr/local/cuda/include"
+       cmake_minimum_required(VERSION 3.10)
+project(APEX_GPU LANGUAGES C CXX)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+message(STATUS "Configuring APEX-GPU for ROCm/HIP environment")
+
+# -------------------------------------------------------
+# ROCm paths (RunPod default container)
+# -------------------------------------------------------
+set(ROCM_PATH /opt/rocm)
+set(HIP_PATH ${ROCM_PATH}/hip)
+set(ROCBLAS_PATH ${ROCM_PATH}/lib)
+set(MIOPEN_PATH ${ROCM_PATH}/lib)
+
+include_directories(
+    ${HIP_PATH}
+    ${HIP_PATH}/include
+    ${ROCM_PATH}/include
+)
+
+link_directories(
+    ${ROCM_PATH}/lib
+    ${ROCM_PATH}/lib64
+)
+
+# -------------------------------------------------------
+# Source files
+# -------------------------------------------------------
+set(SRC_DIR src/bridge)
+
+set(BRIDGE_SOURCES
+    ${SRC_DIR}/hip_bridge.c
+    ${SRC_DIR}/cublas_bridge.c
+    ${SRC_DIR}/cudnn_bridge.c
+)
+
+# -------------------------------------------------------
+# Build shared libraries
+# -------------------------------------------------------
+foreach(src_file ${BRIDGE_SOURCES})
+    get_filename_component(lib_name ${src_file} NAME_WE)
+
+    add_library(${lib_name} SHARED ${src_file})
+
+    target_link_libraries(${lib_name}
+        amdhip64
+        rocblas
+        MIOpen
+        pthread
+        dl
+    )
+
+    set_target_properties(${lib_name} PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        OUTPUT_NAME ${lib_name}
+    )
+endforeach()
+
+# -------------------------------------------------------
+# Install rules
+# -------------------------------------------------------
+install(TARGETS hip_bridge cublas_bridge cudnn_bridge
+        LIBRARY DESTINATION lib)
+ "/usr/local/cuda/include"
         "/usr/include/cuda"
         "/opt/cuda/include"
     )
