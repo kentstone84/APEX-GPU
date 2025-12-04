@@ -118,7 +118,17 @@ cudaError_t __cudaPushCallConfiguration(dim3 gridDim, dim3 blockDim,
     fprintf(stderr, "[APEX-ML]    → (1.8M parameter model would run here)\n\n");
     call_count++;
 
-    return real ? real(gridDim, blockDim, sharedMem, stream) : cudaSuccess;
+    if (!real) {
+        fprintf(stderr, "❌ [ERROR] __cudaPushCallConfiguration not found!\n");
+        fprintf(stderr, "   CUDA runtime library not loaded correctly.\n\n");
+        return 1; // cudaErrorInitializationError
+    }
+
+    cudaError_t result = real(gridDim, blockDim, sharedMem, stream);
+    if (result != cudaSuccess) {
+        fprintf(stderr, "❌ [ERROR] __cudaPushCallConfiguration failed: error code %d\n\n", result);
+    }
+    return result;
 }
 
 cudaError_t __cudaPopCallConfiguration(dim3 *gridDim, dim3 *blockDim,
@@ -128,7 +138,17 @@ cudaError_t __cudaPopCallConfiguration(dim3 *gridDim, dim3 *blockDim,
     if (!real) real = (T)dlsym(RTLD_NEXT, "__cudaPopCallConfiguration");
 
     call_count++;
-    return real ? real(gridDim, blockDim, sharedMem, stream) : cudaSuccess;
+
+    if (!real) {
+        fprintf(stderr, "❌ [ERROR] __cudaPopCallConfiguration not found!\n\n");
+        return 1; // cudaErrorInitializationError
+    }
+
+    cudaError_t result = real(gridDim, blockDim, sharedMem, stream);
+    if (result != cudaSuccess) {
+        fprintf(stderr, "❌ [ERROR] __cudaPopCallConfiguration failed: error code %d\n\n", result);
+    }
+    return result;
 }
 
 cudaError_t cudaLaunchKernel(const void *func,
@@ -153,7 +173,19 @@ cudaError_t cudaLaunchKernel(const void *func,
     fprintf(stderr, "[APEX-ML]    → (1.8M parameter model would run here)\n\n");
     call_count++;
 
-    return real(func, gridDim, blockDim, args, sharedMem, stream);
+    if (!real) {
+        fprintf(stderr, "❌ [ERROR] cudaLaunchKernel not found!\n");
+        fprintf(stderr, "   CUDA runtime library not loaded correctly.\n\n");
+        return 1; // cudaErrorInitializationError
+    }
+
+    cudaError_t result = real(func, gridDim, blockDim, args, sharedMem, stream);
+    if (result != cudaSuccess) {
+        fprintf(stderr, "❌ [ERROR] cudaLaunchKernel failed: error code %d\n\n", result);
+    } else {
+        fprintf(stderr, "✅ [SUCCESS] Kernel launched successfully!\n\n");
+    }
+    return result;
 }
 
 // Legacy launch API (used by older CUDA code)
@@ -182,5 +214,16 @@ cudaError_t cudaLaunch(const void *func) {
     fprintf(stderr, "   [APEX-ML] 🧠 ML Prediction!\n\n");
     call_count++;
 
-    return real(func);
+    if (!real) {
+        fprintf(stderr, "❌ [ERROR] cudaLaunch not found!\n\n");
+        return 1; // cudaErrorInitializationError
+    }
+
+    cudaError_t result = real(func);
+    if (result != cudaSuccess) {
+        fprintf(stderr, "❌ [ERROR] cudaLaunch failed: error code %d\n\n", result);
+    } else {
+        fprintf(stderr, "✅ [SUCCESS] cudaLaunch succeeded!\n\n");
+    }
+    return result;
 }
