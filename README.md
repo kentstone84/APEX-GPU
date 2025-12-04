@@ -2,7 +2,7 @@
 
 **Run NVIDIA CUDA applications on AMD GPUs without recompilation**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 [![Tests](https://img.shields.io/badge/Tests-100%25%20Pass-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/Coverage-61%20Functions-blue)]()
 
@@ -472,7 +472,7 @@ LD_PRELOAD=./libapex_hip_bridge.so ./test_your_change
 
 ### Q: Can I use this commercially?
 
-**A:** Yes! APEX is MIT licensed. Use it freely in commercial applications.
+**A:** No. APEX is licensed under CC BY-NC-SA 4.0 (Non-Commercial). You can use it for research, education, and personal projects, but not for commercial purposes. For commercial licensing, please contact the maintainers.
 
 ### Q: Will this break with CUDA updates?
 
@@ -494,9 +494,46 @@ LD_PRELOAD=./libapex_hip_bridge.so ./test_your_change
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+**Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**
 
-**TL;DR:** Use it for anything, commercial or non-commercial. No restrictions.
+See [LICENSE](LICENSE) file for full details.
+
+### What This Means:
+
+✅ **You CAN:**
+- Use for personal projects
+- Use for research and education
+- Use for academic purposes
+- Modify and improve the code
+- Share with others
+- Contribute improvements back
+
+❌ **You CANNOT:**
+- Use in commercial products or services
+- Sell the software or derivatives
+- Use to provide paid services
+- Use for commercial consulting
+
+### Why Non-Commercial?
+
+APEX GPU solves a multi-billion dollar industry problem. While we want the community to benefit and contribute, we've chosen to reserve commercial rights. This ensures:
+- Fair compensation for the value created
+- Sustainable development and support
+- Prevention of exploitation by large corporations
+
+### Commercial Licensing
+
+If you need to use APEX GPU commercially, we offer commercial licenses with:
+- Full commercial usage rights
+- Priority support
+- Custom feature development
+- Service level agreements
+
+**Contact:** [Add your contact email here]
+
+### For Contributors
+
+By contributing to APEX GPU, you agree that your contributions will be licensed under the same CC BY-NC-SA 4.0 license.
 
 ---
 
