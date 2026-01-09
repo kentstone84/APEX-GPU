@@ -51,7 +51,7 @@
 Test APEX interception (calls intercepted but not executed):
 
 ```bash
-cd "/mnt/c/Users/SentinalAI/Desktop/APEX GPU"
+
 
 # Run comprehensive test suite
 ./run_all_tests.sh

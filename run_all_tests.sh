@@ -16,7 +16,7 @@ echo "║                 Running All CUDA API Tests                     ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 
-cd "/mnt/c/Users/SentinalAI/Desktop/APEX GPU"
+
 
 # Test configuration
 TESTS=(

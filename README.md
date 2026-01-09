@@ -97,7 +97,7 @@ APEX GPU intercepts CUDA calls at runtime and translates them to AMD equivalents
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/APEX-GPU.git
+git clone https://github.com/kentstone84/APEX-GPU.git
 cd APEX-GPU
 
 # Build all bridges (takes ~30 seconds)
