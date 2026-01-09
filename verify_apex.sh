@@ -8,7 +8,7 @@
 
 set -e
 
-cd "/mnt/c/Users/SentinalAI/Desktop/APEX GPU"
+
 
 echo ""
 echo "╔════════════════════════════════════════════════════════════════╗"

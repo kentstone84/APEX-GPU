@@ -37,7 +37,7 @@ rocm-smi
 ### Step 4: Upload APEX
 ```bash
 # From your WSL2 machine:
-cd "/mnt/c/Users/SentinalAI/Desktop/APEX GPU"
+
 
 scp libapex_hip_bridge.so root@<instance-ip>:~/
 scp test_minimal root@<instance-ip>:~/

@@ -12,7 +12,7 @@ echo "║         Building APEX cuDNN → MIOpen Translation Bridge       ║"
 echo "╚════════════════════════════════════════════════════════════════╝"
 echo ""
 
-cd "/mnt/c/Users/SentinalAI/Desktop/APEX GPU"
+
 
 # Check if apex_profiler.h exists
 if [ ! -f "apex_profiler.h" ]; then

@@ -7,7 +7,7 @@ echo "║        Testing HIP Bridge + cuBLAS Bridge Together            ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 
-cd "/mnt/c/Users/SentinalAI/Desktop/APEX GPU"
+
 
 # Test 1: HIP Bridge alone
 echo "═══════════════════════════════════════════════════════════════"
